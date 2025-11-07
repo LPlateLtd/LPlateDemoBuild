@@ -1,6 +1,6 @@
 # 🚗 L Plate - Learner Driver Marketplace
 
-A modern marketplace web app connecting UK learner drivers with qualified driving instructors. Built with Next.js 15, TypeScript, and Supabase.
+A modern marketplace web app connecting UK learner drivers with qualified driving instructors. Built with Next.js 16, TypeScript, and Supabase.
 
 ## ✨ Features
 
@@ -57,7 +57,7 @@ A modern marketplace web app connecting UK learner drivers with qualified drivin
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | Next.js 15, TypeScript, TailwindCSS |
+| **Frontend** | Next.js 16, TypeScript, TailwindCSS |
 | **Backend** | Supabase (Postgres + Auth + Storage) |
 | **Authentication** | Supabase Auth |
 | **Database** | PostgreSQL with geolocation support |
@@ -517,7 +517,9 @@ CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.
 - **Dynamic Sign-up Images**: Role-based car images (CarSprout.png for learners, CarPro.png for instructors)
 - **Accessibility Improvements**: Larger text sizes, wider menus, and better contrast for mobile users
 
-### 🔄 Latest Updates (v3.14) - Instructor Dashboard & Earnings Page
+### 🔄 Latest Updates (v3.14) - Next.js 16 Upgrade & Instructor Dashboard Enhancements
+- **Next.js 16 Upgrade**: Upgraded from Next.js 15.5.3 to 16.0.1 with full compatibility verification
+- **Package Updates**: Updated React 19.2.0, @supabase/supabase-js 2.80.0, TypeScript 5.9.3, Zod 4.1.12
 - **Instructor Earnings Page**: Complete dedicated earnings tracking page with monthly/weekly toggle, visual progress indicators, and payout history
 - **Monthly-Focused Dashboard**: Converted instructor dashboard from weekly to monthly earnings focus with £3,000 monthly target
 - **Reusable UI Components**: Created common component library (BackButton, ToggleGroup, ProfileAvatarUpload, PrimaryButton) for consistent UI/UX
@@ -527,7 +529,7 @@ CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.
 - **Profile Loading Fix**: Resolved database query issues by removing non-existent columns (gender, profile_picture) from profile queries
 - **Menu Personalization**: Navigation menu now displays instructor's first name with larger, more prominent text
 - **Log Out Button**: Enhanced logout button with orange styling and Supabase-hosted icon
-- **TypeScript Fixes**: Resolved all TypeScript errors for clean build and deployment
+- **Production Deployment**: Successfully deployed to production with all pre-deployment checks passed
 
 ### 🔄 Previous Updates (v3.13) - Instructor Availability Page Enhancement
 - **Accessibility-Friendly Toggle Switches**: Replaced segmented toggles with single-button accessibility-compliant switches
@@ -714,7 +716,7 @@ CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.
 ### 🔧 Deployment Configuration
 - **Build Command**: `pnpm run build`
 - **Output Directory**: `.next`
-- **Framework**: Next.js 15
+- **Framework**: Next.js 16
 - **Environment Variables**: Configured for Supabase and Stripe Connect
 - **Database Migration**: `stripe-connect-migration.sql` ready for execution
 

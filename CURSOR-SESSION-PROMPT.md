@@ -8,7 +8,10 @@ Use this prompt when starting a new Cursor session to quickly get up to speed on
 
 I'm working on **LPlate**, a UK learner driver marketplace connecting learners with qualified driving instructors. **PRODUCTION STATUS: Stripe Connect integration is complete and deployed!** 🎉
 
-### 🎯 **Current Status (Latest - v3.14 Instructor Dashboard & Earnings Page)**
+### 🎯 **Current Status (Latest - v3.14 Next.js 16 Upgrade & Instructor Dashboard Enhancements)**
+- ✅ **Next.js 16 Upgrade**: Successfully upgraded from Next.js 15.5.3 to 16.0.1 with full compatibility verification
+- ✅ **Package Updates**: Updated React 19.2.0, @supabase/supabase-js 2.80.0, TypeScript 5.9.3, Zod 4.1.12
+- ✅ **Production Deployment**: Successfully deployed to production with all pre-deployment checks passed (typecheck, build)
 - ✅ **Instructor Earnings Page**: Complete dedicated earnings tracking page with monthly/weekly toggle, visual progress indicators, and payout history
 - ✅ **Monthly-Focused Dashboard**: Converted instructor dashboard from weekly to monthly earnings focus with £3,000 monthly target
 - ✅ **Reusable UI Components**: Created common component library (BackButton, ToggleGroup, ProfileAvatarUpload, PrimaryButton) for consistent UI/UX
@@ -124,7 +127,7 @@ Please help me get up to speed by running these diagnostics and providing a comp
 
 ### 🎯 **Project Context:**
 
-**Tech Stack:** Next.js 15, TypeScript, TailwindCSS, Supabase (Postgres + Auth + Storage), Stripe Connect
+**Tech Stack:** Next.js 16, TypeScript, TailwindCSS, Supabase (Postgres + Auth + Storage), Stripe Connect
 
 **Core Features:**
 - Enhanced instructor search with advanced filtering and postcode normalization
