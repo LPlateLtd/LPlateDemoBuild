@@ -88,7 +88,9 @@ src/
 │   │   └── request/           # Booking request flow
 │   ├── instructor/
 │   │   ├── [id]/             # Public instructor profile pages
+│   │   ├── page.tsx          # Instructor dashboard (monthly earnings focus)
 │   │   ├── profile/          # Instructor profile management
+│   │   ├── earnings/         # Instructor earnings tracking page
 │   │   ├── availability/     # Weekly availability calendar
 │   │   ├── bookings/         # Instructor's booking management
 │   │   └── layout.tsx        # Instructor-specific layout
@@ -106,6 +108,9 @@ src/
 │       ├── StatCard.tsx      # Statistics display card
 │       ├── ProgressBar.tsx    # Progress visualization
 │       ├── ToggleSwitch.tsx   # iOS 7 style toggle
+│       ├── BackButton.tsx     # Reusable back navigation button
+│       ├── ProfileAvatarUpload.tsx # Profile photo upload component
+│       ├── PrimaryButton.tsx  # Reusable primary action button
 │       └── SocialProofCarousel.tsx # Certificate showcase carousel
 └── lib/
     ├── supabase.ts           # Client-side Supabase client
@@ -512,7 +517,28 @@ CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.
 - **Dynamic Sign-up Images**: Role-based car images (CarSprout.png for learners, CarPro.png for instructors)
 - **Accessibility Improvements**: Larger text sizes, wider menus, and better contrast for mobile users
 
-### 🔄 Latest Updates (v3.12) - Homepage Mobile Optimization
+### 🔄 Latest Updates (v3.14) - Instructor Dashboard & Earnings Page
+- **Instructor Earnings Page**: Complete dedicated earnings tracking page with monthly/weekly toggle, visual progress indicators, and payout history
+- **Monthly-Focused Dashboard**: Converted instructor dashboard from weekly to monthly earnings focus with £3,000 monthly target
+- **Reusable UI Components**: Created common component library (BackButton, ToggleGroup, ProfileAvatarUpload, PrimaryButton) for consistent UI/UX
+- **Enhanced Navigation Menu**: Updated instructor menu with Supabase-hosted icons for Dashboard, Profile, Earnings, Bookings, and Working Hours
+- **Improved Dashboard Layout**: Optimized spacing and layout with "Hi [First Name]! 👋" greeting and "Manage your business" placement
+- **Stripe Account Status**: Added Payments section with color-coded status indicators (Required/Pending/Verified) and Stripe Connect integration
+- **Profile Loading Fix**: Resolved database query issues by removing non-existent columns (gender, profile_picture) from profile queries
+- **Menu Personalization**: Navigation menu now displays instructor's first name with larger, more prominent text
+- **Log Out Button**: Enhanced logout button with orange styling and Supabase-hosted icon
+- **TypeScript Fixes**: Resolved all TypeScript errors for clean build and deployment
+
+### 🔄 Previous Updates (v3.13) - Instructor Availability Page Enhancement
+- **Accessibility-Friendly Toggle Switches**: Replaced segmented toggles with single-button accessibility-compliant switches
+- **Keyboard & Screen Reader Support**: Full keyboard navigation (Space/Enter) and screen reader compatibility with proper ARIA attributes
+- **Improved Text Positioning**: "Open"/"Busy" text positioned close to edges of pill shape for better visual balance
+- **Cleaner Time Inputs**: Removed edit icons from time inputs for cleaner, more obvious interaction design
+- **Compact Layout**: Reduced spacing between time elements (space-x-1) and input padding (px-2 py-1.5) for efficiency
+- **Professional Title**: Changed from "Your Diary" to "Working Hours" with centered alignment
+- **Enhanced UX**: Single-click toggle functionality with smooth animations and better visual feedback
+
+### 🔄 Previous Updates (v3.12) - Homepage Mobile Optimization
 - **Enhanced Social Media Links**: Fixed social links to fit properly on 375px mobile screens with responsive spacing and text sizing
 - **Optimized Social Layout**: Changed from horizontal wrapping to single-row layout with "Insta" abbreviation for better fit
 - **Redesigned Stats Section**: Converted from horizontal grid to vertical stacked cards with horizontal icon-stat-text layout
@@ -695,14 +721,24 @@ CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.
 ## 🚧 Roadmap
 
 ### 🔜 Next Features
-- **Learner Dashboard**: Progress tracking and lesson history
-- **Instructor Dashboard**: Earnings, student management, and analytics
-- **Email Notifications**: Booking confirmations and updates
-- **Advanced Scheduling**: Recurring lesson bookings
-- **Reviews & Ratings**: Instructor feedback system
-- **Mobile App**: React Native version
-- **Advanced Analytics**: Payment and booking insights
-- **Multi-currency Support**: International expansion
+
+**High Priority (Must Have):**
+- ✅ **Instructor Earnings Page**: COMPLETED - Dedicated earnings tracking with visual charts and payout history
+- **Complete Booking Flow**: End-to-end booking process from search to payment confirmation
+- **Stripe API Integration**: Full payment processing with instructor payouts and refund handling
+- **Learner Dashboard**: Comprehensive dashboard with lesson history, progress tracking, and goals
+
+**Medium Priority (Should Have):**
+- **Settings Page**: User settings for profile management, notifications, and account controls
+- **Hide Calendar Feature**: Temporarily disable calendar while preserving code for future use
+- **Email Notifications**: Booking confirmations, reminders, and updates
+- **Reviews & Ratings**: Instructor feedback and rating system
+
+**Low Priority (Could Have):**
+- **Advanced Scheduling**: Recurring lesson bookings and bulk scheduling
+- **Mobile App**: React Native version for iOS and Android
+- **Advanced Analytics**: Payment insights, booking patterns, and business intelligence
+- **Multi-currency Support**: International expansion and currency handling
 
 ### 🛠 Technical Improvements
 - **Error Handling**: Comprehensive error boundaries and user feedback

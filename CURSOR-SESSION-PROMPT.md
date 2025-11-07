@@ -8,18 +8,27 @@ Use this prompt when starting a new Cursor session to quickly get up to speed on
 
 I'm working on **LPlate**, a UK learner driver marketplace connecting learners with qualified driving instructors. **PRODUCTION STATUS: Stripe Connect integration is complete and deployed!** 🎉
 
-### 🎯 **Current Status (Latest - v3.13 Pre-Deployment Setup)**
-- ✅ **Pre-Deployment Infrastructure**: Complete CI/CD setup with health endpoint and verification scripts
-- ✅ **Health Monitoring**: `/api/health` endpoint for uptime monitoring and deployment verification
-- ✅ **CI Verification Scripts**: `ci:verify`, `ci:verify-full`, and `ci:verify-server` for different testing levels
-- ✅ **Package Manager Fix**: Updated scripts to use `pnpm install --frozen-lockfile` instead of `npm ci`
-- ✅ **External Image Support**: Enhanced `next.config.ts` to allow all HTTPS external images
-- ✅ **Suspense Boundary Fix**: Resolved Next.js build error by wrapping `useSearchParams()` in Suspense
-- ✅ **Comprehensive Documentation**: Created PRE-DEPLOYMENT-GUIDE.md with complete deployment process
-- ✅ **Mobile UI Enhancements**: Instructor carousel location truncation (12 chars) for better mobile fit
-- ✅ **Code Quality**: Fixed TypeScript errors, React apostrophe issues, and cleaned up unused imports
-- ✅ **Windows Compatibility**: Documented Windows-specific build issues and workarounds
-- ✅ **Deployment Ready**: Successfully pushed to GitHub and deployed to Vercel
+### 🎯 **Current Status (Latest - v3.14 Instructor Dashboard & Earnings Page)**
+- ✅ **Instructor Earnings Page**: Complete dedicated earnings tracking page with monthly/weekly toggle, visual progress indicators, and payout history
+- ✅ **Monthly-Focused Dashboard**: Converted instructor dashboard from weekly to monthly earnings focus with £3,000 monthly target
+- ✅ **Reusable UI Components**: Created common component library (BackButton, ToggleGroup, ProfileAvatarUpload, PrimaryButton) for consistent UI/UX
+- ✅ **Enhanced Navigation Menu**: Updated instructor menu with Supabase-hosted icons for Dashboard, Profile, Earnings, Bookings, and Working Hours
+- ✅ **Improved Dashboard Layout**: Optimized spacing and layout with "Hi [First Name]! 👋" greeting and "Manage your business" placement
+- ✅ **Stripe Account Status**: Added Payments section with color-coded status indicators (Required/Pending/Verified) and Stripe Connect integration
+- ✅ **Profile Loading Fix**: Resolved database query issues by removing non-existent columns (gender, profile_picture) from profile queries
+- ✅ **Menu Personalization**: Navigation menu now displays instructor's first name with larger, more prominent text
+- ✅ **Log Out Button**: Enhanced logout button with orange styling and Supabase-hosted icon
+- ✅ **TypeScript Fixes**: Resolved all TypeScript errors for clean build and deployment
+
+### 🎯 **Previous Status (v3.13 Instructor Availability Enhancement)**
+- ✅ **Instructor Availability Page Enhancement**: Complete UI/UX overhaul with accessibility-friendly toggle switches
+- ✅ **Accessibility Compliance**: Full keyboard navigation (Space/Enter) and screen reader support with proper ARIA attributes
+- ✅ **Improved Toggle Design**: Single-button toggles with "Open"/"Busy" text positioned close to edges for better visual balance
+- ✅ **Cleaner Time Inputs**: Removed edit icons from time inputs for cleaner, more obvious interaction design
+- ✅ **Compact Layout**: Reduced spacing between time elements and input padding for more efficient use of space
+- ✅ **Professional Title**: Changed from "Your Diary" to "Working Hours" with centered alignment
+- ✅ **Enhanced UX**: Single-click toggle functionality with smooth animations and better visual feedback
+- ✅ **Production Deployment**: Successfully built, tested, and deployed to Vercel with all improvements
 
 ### 🎯 **Previous Status (Homepage Mobile Optimization)**
 - ✅ **Enhanced Social Media Links**: Fixed social links to fit properly on 375px mobile screens with responsive spacing and text sizing
@@ -135,11 +144,12 @@ Please help me get up to speed by running these diagnostics and providing a comp
 - **Elegant Share Functionality**: Pill-shaped share buttons with URL copying
 
 **Current Focus Areas:**
+- ✅ **Instructor Dashboard Creation**: COMPLETED - Established monthly-focused instructor dashboard with earnings tracking
+- ✅ **Instructor Earnings Page**: COMPLETED - Dedicated earnings page with Stripe Connect integration
 - **Instructor Bookings Page**: Make instructor bookings page work like the learner one with consistent UI/UX
 - **Learner Dashboard Accuracy**: Fix learner dashboard to show accurate information and real-time updates
 - **Calendar Feature Management**: Toggle off/remove calendar feature while preserving existing work
 - **Availability Page Mobile Review**: Review and optimize mobile UI for working hours page
-- **Instructor Dashboard Creation**: Establish basic instructor dashboard based on learner dashboard
 - **Mobile Experience Polish**: ✅ COMPLETED - Enhanced mobile interactions with proper touch targets and animations
 - **Stripe API Integration**: Implement complete booking flow with payment processing
 - **Production Monitoring**: Monitor live application performance and user feedback
@@ -148,39 +158,50 @@ Please help me get up to speed by running these diagnostics and providing a comp
 - **Feature Enhancement**: Plan next iteration based on user needs
 - **Security Monitoring**: Monitor for any security issues or vulnerabilities
 
-### 🎯 **Next Session Priorities (v3.12):**
+### 🎯 **Next Session Priorities (v3.14):**
 
 **High Priority Tasks:**
-1. **Instructor Bookings Page Enhancement**
-   - Make instructor bookings page work like the learner one
-   - Ensure consistent UI/UX between learner and instructor booking views
-   - Add proper data fetching and display logic
+1. ✅ **Instructor Earnings Page** - COMPLETED
+   - ✅ Created dedicated earnings tracking page for instructors
+   - ✅ Display weekly/monthly earnings with visual charts
+   - ✅ Show completed vs pending lesson earnings
+   - ✅ Add payout history and upcoming payouts
 
-2. **Learner Dashboard Accuracy**
-   - Fix learner dashboard to show accurate information
-   - Ensure data consistency and proper real-time updates
-   - Verify all dashboard metrics and statistics
+2. **Hide Instructor Calendar Page**
+   - Temporarily hide/disable calendar functionality
+   - Remove calendar from navigation menu
+   - Preserve existing calendar code for future use
+   - Update instructor dashboard to remove calendar references
 
-3. **Calendar Feature Management**
-   - Toggle off or remove "Calendar" feature temporarily
-   - Store/preserve existing calendar work for future use
-   - Clean up navigation and remove calendar references
+3. **Settings Page**
+   - Create user settings page for both learners and instructors
+   - Add profile management, notification preferences
+   - Include account settings, privacy controls
+   - Add password change and account deletion options
 
-4. **Availability Page Mobile Review**
-   - Review "working hours" (/availability) page for mobile UI issues
-   - Optimize mobile responsiveness and touch interactions
-   - Ensure proper mobile layout and usability
+4. **Learner Dashboard**
+   - Create comprehensive learner dashboard
+   - Show lesson history, progress tracking, upcoming lessons
+   - Display instructor ratings and feedback
+   - Add learning goals and achievement tracking
 
-5. **Instructor Dashboard Creation**
-   - Establish a basic instructor dashboard based on the learner one
-   - Create instructor-specific metrics and information display
-   - Ensure role-based dashboard functionality
+5. **Stripe API Integration**
+   - Complete Stripe Connect integration for payments
+   - Implement booking payment flow
+   - Add instructor payout processing
+   - Handle refunds and disputes
+
+6. **Complete Booking Flow**
+   - End-to-end booking process from search to payment
+   - Instructor availability integration
+   - Booking confirmation and notifications
+   - Lesson scheduling and management
 
 **Technical Focus Areas:**
-- **Data Consistency**: Ensure instructor and learner booking pages show consistent data
-- **Mobile Optimization**: Focus on mobile UI improvements across key pages
-- **Feature Management**: Clean up unused features while preserving work
-- **Dashboard Development**: Create instructor-specific dashboard functionality
+- **Accessibility**: Continue implementing accessibility best practices across all components
+- **Mobile Optimization**: Focus on mobile UI improvements and responsive design
+- **Performance**: Monitor and optimize application performance and loading times
+- **User Experience**: Gather feedback and implement user-requested improvements
 
 ### 🎯 **Next Development Priorities:**
 
@@ -426,8 +447,13 @@ Please provide:
 - `src/app/instructor/[id]/page.tsx` - Public instructor profile pages with integrated design
 - `src/app/instructor/profile/page.tsx` - Instructor profile management with service radius and language selection
 - `src/app/instructor/calendar/page.tsx` - Instructor calendar with monthly view and booking integration
+- `src/app/instructor/page.tsx` - Instructor dashboard with monthly earnings focus
+- `src/app/instructor/earnings/page.tsx` - Instructor earnings tracking page with Stripe Connect integration
 - `src/app/instructor/availability/page.tsx` - Weekly availability management with modern toggles
 - `src/app/instructor/bookings/page.tsx` - Instructor booking management with status-based earnings
+- `src/components/ui/BackButton.tsx` - Reusable back navigation button component
+- `src/components/ui/ProfileAvatarUpload.tsx` - Profile photo upload component
+- `src/components/ui/PrimaryButton.tsx` - Reusable primary action button component
 - `src/app/api/health/route.ts` - Health endpoint for monitoring and deployment verification
 
 **Database & Setup Files:**

@@ -23,7 +23,6 @@ export default function Navigation() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -180,8 +179,8 @@ export default function Navigation() {
                     {/* Header with close button */}
                     <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-green-50 to-blue-50 flex items-center justify-between">
                       <div>
-                        <div className="text-xl font-semibold text-gray-900">
-                          Hi, {profile?.name || "User"}
+                        <div className="text-2xl font-semibold text-gray-900">
+                          Hi, {profile?.name ? (profile.name.trim().split(' ')[0] || "User") : "User"}
                         </div>
                         <div className="text-base text-gray-600 capitalize">
                           {profile?.role || "User"}
@@ -201,27 +200,42 @@ export default function Navigation() {
                   <div className="py-1">
                     <Link
                       href={isInstructor ? "/instructor" : "/dashboard"}
-                      className="block px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
+                      className="flex items-center px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      📊 Dashboard
+                      <img 
+                        src="https://bvlilxbhipbworirvzcl.supabase.co/storage/v1/object/public/Icons/Dashboard.png"
+                        alt="Dashboard" 
+                        className="w-7 h-7 mr-3 object-contain"
+                      />
+                      Dashboard
                     </Link>
                     
                     {isLearner && (
                       <>
                         <Link
                           href="/learner/profile"
-                          className="block px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
+                          className="flex items-center px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          👤 Profile
+                          <img 
+                            src="https://bvlilxbhipbworirvzcl.supabase.co/storage/v1/object/public/Icons/Profile.png"
+                            alt="Profile" 
+                            className="w-7 h-7 mr-3 object-contain"
+                          />
+                          Profile
                         </Link>
                         <Link
                           href="/bookings"
-                          className="block px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
+                          className="flex items-center px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          📅 My Bookings
+                          <img 
+                            src="https://bvlilxbhipbworirvzcl.supabase.co/storage/v1/object/public/Icons/Bookings.png"
+                            alt="Bookings" 
+                            className="w-7 h-7 mr-3 object-contain"
+                          />
+                          My Bookings
                         </Link>
                       </>
                     )}
@@ -230,61 +244,52 @@ export default function Navigation() {
                       <>
                         <Link
                           href="/instructor/profile"
-                          className="block px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
+                          className="flex items-center px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          👤 Profile
+                          <img 
+                            src="https://bvlilxbhipbworirvzcl.supabase.co/storage/v1/object/public/Icons/Profile.png"
+                            alt="Profile" 
+                            className="w-7 h-7 mr-3 object-contain"
+                          />
+                          Profile
                         </Link>
-                        
-                        {/* Schedule Section */}
-                        <div>
-                          <button
-                            onClick={() => setIsScheduleOpen(!isScheduleOpen)}
-                            className="flex items-center justify-between w-full px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
-                          >
-                            <span className="flex items-center">
-                              📅 Schedule
-                            </span>
-                            <span className={`transform transition-transform duration-200 text-lg ${isScheduleOpen ? 'rotate-180' : ''}`}>
-                              ▼
-                            </span>
-                          </button>
-                          
-                          {isScheduleOpen && (
-                            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-200 ml-8">
-                              <Link
-                                href="/instructor/availability"
-                                className="block px-8 py-4 text-lg text-gray-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                                onClick={() => {
-                                  setIsMenuOpen(false);
-                                  setIsScheduleOpen(false);
-                                }}
-                              >
-                                ⏰ Working Hours
-                              </Link>
-                              <Link
-                                href="/instructor/calendar"
-                                className="block px-8 py-4 text-lg text-gray-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                                onClick={() => {
-                                  setIsMenuOpen(false);
-                                  setIsScheduleOpen(false);
-                                }}
-                              >
-                                📆 Calendar
-                              </Link>
-                              <Link
-                                href="/instructor/bookings"
-                                className="block px-8 py-4 text-lg text-gray-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                                onClick={() => {
-                                  setIsMenuOpen(false);
-                                  setIsScheduleOpen(false);
-                                }}
-                              >
-                                📋 Bookings
-                              </Link>
-                            </div>
-                          )}
-                        </div>
+                        <Link
+                          href="/instructor/earnings"
+                          className="flex items-center px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <img 
+                            src="https://bvlilxbhipbworirvzcl.supabase.co/storage/v1/object/public/Icons/Earnings.png"
+                            alt="Earnings" 
+                            className="w-7 h-7 mr-3 object-contain"
+                          />
+                          Earnings
+                        </Link>
+                        <Link
+                          href="/instructor/bookings"
+                          className="flex items-center px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <img 
+                            src="https://bvlilxbhipbworirvzcl.supabase.co/storage/v1/object/public/Icons/Bookings.png"
+                            alt="Bookings" 
+                            className="w-7 h-7 mr-3 object-contain"
+                          />
+                          Bookings
+                        </Link>
+                        <Link
+                          href="/instructor/availability"
+                          className="flex items-center px-8 py-5 text-lg font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors border-l-4 border-transparent hover:border-green-500"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <img 
+                            src="https://bvlilxbhipbworirvzcl.supabase.co/storage/v1/object/public/Icons/WorkingHours.png"
+                            alt="Working Hours" 
+                            className="w-7 h-7 mr-3 object-contain"
+                          />
+                          Working Hours
+                        </Link>
                       </>
                     )}
                   </div>
@@ -293,12 +298,16 @@ export default function Navigation() {
                     <button
                       onClick={() => {
                         setIsMenuOpen(false);
-                        setIsScheduleOpen(false);
                         signOut();
                       }}
-                      className="block w-full text-left px-8 py-5 text-lg font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors border-l-4 border-transparent hover:border-red-500"
+                      className="flex items-center w-full text-left px-8 py-5 text-lg font-medium text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors border-l-4 border-transparent hover:border-orange-500"
                     >
-                      🚪 Sign Out
+                      <img 
+                        src="https://bvlilxbhipbworirvzcl.supabase.co/storage/v1/object/public/Icons/LogOut.png"
+                        alt="Log Out" 
+                        className="w-7 h-7 mr-3 object-contain"
+                      />
+                      Log Out
                     </button>
                   </div>
                   </div>

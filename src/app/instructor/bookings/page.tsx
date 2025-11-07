@@ -5,6 +5,7 @@ import { createSupabaseBrowser } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import BackButton from "@/components/ui/BackButton";
 
 const sb = createSupabaseBrowser();
 
@@ -238,17 +239,11 @@ export default function InstructorBookingsPage() {
     <div className="min-h-screen bg-gray-50 font-poppins">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Manage Bookings</h1>
-            </div>
-            <Link
-              href="/instructor/availability"
-              className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg transition-colors whitespace-nowrap"
-            >
-              Set Availability
-            </Link>
+            <BackButton href="/instructor" />
+            <h1 className="text-2xl font-bold text-gray-900 text-center flex-1">Bookings</h1>
+            <div className="w-12"></div>
           </div>
         </div>
       </div>

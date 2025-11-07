@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
+import BackButton from "@/components/ui/BackButton";
+import ProfileAvatarUpload from "@/components/ui/ProfileAvatarUpload";
+import PrimaryButton from "@/components/ui/PrimaryButton";
 
 type Profile = {
   id: string;
@@ -40,8 +43,6 @@ export default function InstructorProfilePage() {
   const [instructor, setInstructor] = useState<Instructor | null>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -182,93 +183,34 @@ export default function InstructorProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-6">
-          <Link href="/instructor" className="text-gray-600 hover:text-gray-800 mb-4 inline-block">
-            ← Back
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900 mb-0">
-            {profile.name ? `${profile.name.split(' ')[0]}'s Profile` : 'Edit Profile'}
-          </h1>
+        <div className="mb-0">
+          <div className="flex items-center justify-between">
+            <BackButton href="/instructor" />
+            <h1 className="text-2xl font-bold text-gray-900 text-center flex-1">
+              {profile.name ? `${profile.name.split(' ')[0]}'s Profile` : 'Edit Profile'}
+            </h1>
+            <div className="w-12"></div> {/* Spacer for centering */}
+          </div>
         </div>
 
         {/* Profile Form Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 pt-0 pb-6">
           <form onSubmit={save} className="space-y-3">
             {/* Profile Photo */}
-            <div className="flex justify-center mb-2">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                  {previewUrl || profile.avatar_url ? (
-                    <Image
-                      src={(previewUrl || profile.avatar_url) as string}
-                      alt="Profile"
-                      width={96}
-                      height={96}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-500 flex items-center justify-center">
-                      <img
-                        src="https://bvlilxbhipbworirvzcl.supabase.co/storage/v1/object/public/avatars/Leaf%20circle.png"
-                        alt="Profile placeholder"
-                        className="w-full h-full object-contain"
-                      />
-                </div>
-              )}
+            <div className="flex justify-center mb-2 pt-1.5">
+              <ProfileAvatarUpload
+                userId={profile.id}
+                currentAvatarUrl={profile.avatar_url}
+                size="lg"
+                onUploadComplete={(newAvatarUrl) => {
+                  setProfile({ ...profile, avatar_url: newAvatarUrl });
+                  setMsg("Photo uploaded successfully");
+                }}
+                onUploadError={(error) => {
+                  setMsg(error);
+                }}
+              />
             </div>
-                <button
-                  type="button"
-                  className="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 hover:bg-green-600 text-black rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110"
-                  onClick={() => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.onchange = async (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0];
-                if (!file || !profile) return;
-                const localUrl = URL.createObjectURL(file);
-                setPreviewUrl(localUrl);
-                setUploading(true);
-                try {
-                  const ext = file.name.split(".").pop() || "jpg";
-                  const path = `${profile.id}-${Date.now()}.${ext}`;
-                        const { error: upErr } = await sb.storage
-                          .from("avatars")
-                          .upload(path, file, { cacheControl: "3600" });
-                        if (upErr) {
-                          throw upErr;
-                        }
-                  const { data: pub } = sb.storage.from("avatars").getPublicUrl(path);
-                        
-                        // Update the profile in the database
-                        const { error: updateError } = await (sb.from("profiles") as any)
-                          .update({ avatar_url: pub.publicUrl })
-                          .eq("id", profile.id);
-                        
-                        if (updateError) {
-                          setMsg("Photo uploaded but failed to save");
-                        } else {
-                          setProfile({ ...profile, avatar_url: pub.publicUrl });
-                          setMsg("Photo uploaded successfully");
-                        }
-                } catch (er: unknown) {
-                  setMsg(er instanceof Error ? er.message : "Upload failed");
-                } finally {
-                  setUploading(false);
-                  setTimeout(() => localUrl && URL.revokeObjectURL(localUrl), 1000);
-                }
-                    };
-                    input.click();
-                  }}
-                  title="Upload profile photo"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </button>
-              </div>
-        </div>
-            {uploading && <p className="text-center text-xs text-gray-500 mb-2">Uploading…</p>}
 
             {/* Full Name */}
         <div>
@@ -517,13 +459,15 @@ export default function InstructorProfilePage() {
             </div>
 
             {/* Save Button */}
-        <button
+            <PrimaryButton
               type="submit"
-          disabled={saving}
-              className="w-full font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 disabled:hover:scale-100 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white"
-        >
-              {saving ? "Saving..." : "Save Changes"}
-        </button>
+              disabled={saving}
+              loading={saving}
+              loadingText="Saving..."
+              fullWidth
+            >
+              Save Changes
+            </PrimaryButton>
       </form>
         </div>
 
