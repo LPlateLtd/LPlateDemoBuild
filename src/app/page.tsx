@@ -24,8 +24,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   // Removed homepage auth redirect detection
-  // Supabase should redirect directly to /auth/verify via redirect_to parameter
-  // If hash tokens end up on homepage, they'll be handled by /auth/verify when user navigates there
+  // Supabase should redirect directly to /welcome via redirect_to parameter
 
   useEffect(() => {
     const fetchTopInstructors = async () => {
