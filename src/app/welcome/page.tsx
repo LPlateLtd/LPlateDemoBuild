@@ -36,8 +36,13 @@ function WelcomeContent() {
         if (codeParam) {
           console.log('[WELCOME] Code parameter detected, exchanging for session...');
           try {
+            // For PKCE flow, we need to pass the full URL to exchangeCodeForSession
+            // This allows Supabase to extract both the code and code verifier
+            const fullUrl = window.location.href;
+            console.log('[WELCOME] Exchanging with full URL:', fullUrl);
             // Exchange the code for a session - this MUST be called exactly once
-            const { data, error: exchangeError } = await sb.auth.exchangeCodeForSession(codeParam);
+            // Pass the full URL which contains the code parameter
+            const { data, error: exchangeError } = await sb.auth.exchangeCodeForSession(fullUrl);
             
             if (exchangeError) {
               console.error('[WELCOME] Exchange error:', exchangeError);
