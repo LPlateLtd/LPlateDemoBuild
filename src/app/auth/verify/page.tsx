@@ -62,37 +62,75 @@ function VerifyContent() {
                              window.location.hash.includes('type=recovery') ||
                              window.location.hash.includes('type=signup');
         
-        // Wait for Supabase to process tokens/code
-        // Supabase with detectSessionInUrl: true should automatically process hash tokens
-        // For code parameters, we need to wait for Supabase to process them
-        if (codeParam || hasHashTokens) {
-          console.log('[VERIFY] Tokens/code detected, waiting for Supabase to process...');
-          // Give Supabase time to process the authentication tokens
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        } else {
-          // No tokens - check for existing session
-          console.log('[VERIFY] No tokens in URL, checking for existing session...');
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-        
-        // Get the session - Supabase should have processed tokens by now
         let session = null;
         let sessionError = null;
         
-        // Try to get session with retries
-        for (let attempt = 0; attempt < 3; attempt++) {
+        // Handle code parameter - need to verify it manually
+        if (codeParam) {
+          console.log('[VERIFY] Code parameter detected, verifying with Supabase...');
+          
+          // For email verification with code parameter, we need to verify it
+          // The code is a one-time token that needs to be verified
+          // Try to verify the code - but we need the email
+          // Actually, Supabase should process the code automatically if it's in the URL
+          // Let's wait for Supabase to process it
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          // Try getting session after code processing
           const result = await sb.auth.getSession();
           session = result.data?.session || null;
           sessionError = result.error || null;
           
-          if (session) {
-            console.log('[VERIFY] Session found on attempt', attempt + 1);
-            break;
+          if (!session) {
+            console.log('[VERIFY] No session after code processing, trying exchangeCodeForSession...');
+            // The code might need to be exchanged for a session
+            // Try using exchangeCodeForSession if available
+            try {
+              const exchangeResult = await sb.auth.exchangeCodeForSession(codeParam);
+              if (exchangeResult.data?.session) {
+                session = exchangeResult.data.session;
+                console.log('[VERIFY] Session created via exchangeCodeForSession');
+              } else if (exchangeResult.error) {
+                console.error('[VERIFY] Exchange error:', exchangeResult.error);
+                sessionError = exchangeResult.error;
+              }
+            } catch (exchangeErr) {
+              console.error('[VERIFY] Exchange failed:', exchangeErr);
+              // Fall through to retry logic
+            }
           }
+        } else if (hasHashTokens) {
+          console.log('[VERIFY] Hash tokens detected, waiting for Supabase to process...');
+          // Wait for Supabase to process the URL hash tokens
+          await new Promise(resolve => setTimeout(resolve, 1500));
           
-          if (attempt < 2) {
-            console.log(`[VERIFY] No session on attempt ${attempt + 1}, retrying...`);
+          // Get session after hash processing
+          const result = await sb.auth.getSession();
+          session = result.data?.session || null;
+          sessionError = result.error || null;
+        } else {
+          // No tokens - check for existing session
+          console.log('[VERIFY] No tokens in URL, checking for existing session...');
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          const result = await sb.auth.getSession();
+          session = result.data?.session || null;
+          sessionError = result.error || null;
+        }
+        
+        // If still no session, retry a few times
+        if (!session && !sessionError) {
+          console.log('[VERIFY] Retrying session retrieval...');
+          for (let attempt = 0; attempt < 2; attempt++) {
             await new Promise(resolve => setTimeout(resolve, 1000));
+            const result = await sb.auth.getSession();
+            session = result.data?.session || null;
+            sessionError = result.error || null;
+            
+            if (session) {
+              console.log('[VERIFY] Session found on retry', attempt + 1);
+              break;
+            }
           }
         }
         
@@ -103,7 +141,7 @@ function VerifyContent() {
         }
 
         if (!session) {
-          console.error('[VERIFY] No session found after retries');
+          console.error('[VERIFY] No session found after all attempts');
           // If we had a code parameter, it might have expired
           if (codeParam) {
             router.replace("/sign-in?error=link_expired&message=" + encodeURIComponent("This verification link may have expired. Please request a new one."));
