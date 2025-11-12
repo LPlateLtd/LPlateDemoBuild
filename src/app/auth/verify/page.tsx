@@ -57,28 +57,44 @@ function VerifyContent() {
           return;
         }
         
-        // Check if we have code parameter or hash tokens
+        // Check if we have hash tokens (Supabase typically uses hash, not query code)
         const hasHashTokens = window.location.hash.includes('access_token') || 
                              window.location.hash.includes('type=recovery') ||
                              window.location.hash.includes('type=signup');
         
-        if (codeParam) {
-          console.log('[VERIFY] Code parameter detected, waiting for Supabase to process...');
-          // For email verification, Supabase automatically processes the code when we call getSession()
-          // Just wait a moment for it to process
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } else if (hasHashTokens) {
-          console.log('[VERIFY] Hash tokens detected, waiting for Supabase to process...');
-          // Wait for Supabase to process the URL hash tokens
-          await new Promise(resolve => setTimeout(resolve, 1500));
+        // Wait for Supabase to process tokens/code
+        // Supabase with detectSessionInUrl: true should automatically process hash tokens
+        // For code parameters, we need to wait for Supabase to process them
+        if (codeParam || hasHashTokens) {
+          console.log('[VERIFY] Tokens/code detected, waiting for Supabase to process...');
+          // Give Supabase time to process the authentication tokens
+          await new Promise(resolve => setTimeout(resolve, 2000));
         } else {
-          // No tokens - might be coming from homepage redirect or already processed
+          // No tokens - check for existing session
           console.log('[VERIFY] No tokens in URL, checking for existing session...');
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         
-        // Get the session first to ensure tokens are processed
-        const { data: { session }, error: sessionError } = await sb.auth.getSession();
+        // Get the session - Supabase should have processed tokens by now
+        let session = null;
+        let sessionError = null;
+        
+        // Try to get session with retries
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const result = await sb.auth.getSession();
+          session = result.data?.session || null;
+          sessionError = result.error || null;
+          
+          if (session) {
+            console.log('[VERIFY] Session found on attempt', attempt + 1);
+            break;
+          }
+          
+          if (attempt < 2) {
+            console.log(`[VERIFY] No session on attempt ${attempt + 1}, retrying...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
         
         if (sessionError) {
           console.error('[VERIFY] Session error:', sessionError);
@@ -87,28 +103,14 @@ function VerifyContent() {
         }
 
         if (!session) {
-          console.error('[VERIFY] No session found');
-          // If we have hash tokens, wait longer and try again
-          if (hasHashTokens) {
-            console.log('[VERIFY] Retrying with longer wait for hash token processing...');
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const { data: { session: retrySession } } = await sb.auth.getSession();
-            if (!retrySession) {
-              console.error('[VERIFY] Still no session after retry');
-              // Try one more time with even longer wait
-              await new Promise(resolve => setTimeout(resolve, 2000));
-              const { data: { session: finalSession } } = await sb.auth.getSession();
-              if (!finalSession) {
-                console.error('[VERIFY] No session after multiple retries');
-                router.replace("/sign-in?error=no_session");
-                return;
-              }
-            }
+          console.error('[VERIFY] No session found after retries');
+          // If we had a code parameter, it might have expired
+          if (codeParam) {
+            router.replace("/sign-in?error=link_expired&message=" + encodeURIComponent("This verification link may have expired. Please request a new one."));
           } else {
-            console.error('[VERIFY] No hash tokens and no session');
             router.replace("/sign-in?error=no_session");
-            return;
           }
+          return;
         }
 
         // Now get the user
