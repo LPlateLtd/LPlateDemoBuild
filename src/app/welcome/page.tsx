@@ -26,32 +26,146 @@ function WelcomeContent() {
     const checkSession = async () => {
       try {
         console.log('[WELCOME] Checking session for password setup...');
+        console.log('[WELCOME] Current URL:', window.location.href);
         
-        // Wait for Supabase to process the URL hash tokens
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Check for code parameter in query string (PKCE flow)
+        const urlParams = new URLSearchParams(window.location.search);
+        const codeParam = urlParams.get('code');
         
-        // Get the session
-        const { data: { session }, error: sessionError } = await sb.auth.getSession();
-        
-        if (sessionError) {
-          console.error('[WELCOME] Session error:', sessionError);
-          setErr("Invalid or expired link. Please request a new signup.");
-          return;
-        }
-        
-        if (session) {
-          console.log('[WELCOME] Valid session found:', { user: session.user?.email });
-          setIsValidSession(true);
+        // If we have a code parameter, we MUST exchange it for a session
+        if (codeParam) {
+          console.log('[WELCOME] Code parameter detected, exchanging for session...');
+          try {
+            // Exchange the code for a session - this MUST be called exactly once
+            const { data, error: exchangeError } = await sb.auth.exchangeCodeForSession(codeParam);
+            
+            if (exchangeError) {
+              console.error('[WELCOME] Exchange error:', exchangeError);
+              // Redirect to error page with role and message
+              const errorMsg = exchangeError.message || "This verification link may have expired. Please request a new one.";
+              const errorUrl = `/auth/error?msg=${encodeURIComponent(errorMsg)}${roleParam ? `&role=${roleParam}` : ''}`;
+              router.replace(errorUrl);
+              return;
+            }
+            
+            if (data?.session) {
+              console.log('[WELCOME] Session created via exchangeCodeForSession:', { user: data.session.user?.email });
+              
+              // Check if user already has a profile (existing user)
+              const { data: { user } } = await sb.auth.getUser();
+              if (user) {
+                const { data: existingProfile } = await sb
+                  .from("profiles")
+                  .select("role")
+                  .eq("id", user.id)
+                  .maybeSingle();
+                
+                if (existingProfile) {
+                  console.log('[WELCOME] Existing user with profile, redirecting to dashboard');
+                  // Existing user - redirect to dashboard
+                  const profileRole = (existingProfile as { role: string }).role;
+                  if (profileRole === "instructor") {
+                    router.replace("/instructor");
+                  } else {
+                    router.replace("/dashboard");
+                  }
+                  return;
+                }
+              }
+              
+              setIsValidSession(true);
+              // Clean up the code from URL
+              const newUrl = new URL(window.location.href);
+              newUrl.searchParams.delete('code');
+              window.history.replaceState({}, '', newUrl.toString());
+            } else {
+              console.error('[WELCOME] No session in exchange response');
+              const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to create session. Please try again.")}${roleParam ? `&role=${roleParam}` : ''}`;
+              router.replace(errorUrl);
+              return;
+            }
+          } catch (exchangeErr) {
+            console.error('[WELCOME] Exchange failed:', exchangeErr);
+            const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to verify your email. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}`;
+            router.replace(errorUrl);
+            return;
+          }
         } else {
-          // Wait a bit more and try again
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          const { data: { session: retrySession } } = await sb.auth.getSession();
-          if (retrySession) {
-            console.log('[WELCOME] Session found on retry:', { user: retrySession.user?.email });
+          // No code parameter - check for existing session (hash tokens or already authenticated)
+          console.log('[WELCOME] No code parameter, checking for existing session...');
+          
+          // Wait for Supabase to process the URL hash tokens if any
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Get the session
+          const { data: { session }, error: sessionError } = await sb.auth.getSession();
+          
+          if (sessionError) {
+            console.error('[WELCOME] Session error:', sessionError);
+            setErr("Invalid or expired link. Please request a new signup.");
+            return;
+          }
+          
+          if (session) {
+            console.log('[WELCOME] Valid session found:', { user: session.user?.email });
+            
+            // Check if user already has a profile (existing user)
+            const { data: { user } } = await sb.auth.getUser();
+            if (user) {
+              const { data: existingProfile } = await sb
+                .from("profiles")
+                .select("role")
+                .eq("id", user.id)
+                .maybeSingle();
+              
+              if (existingProfile) {
+                console.log('[WELCOME] Existing user with profile, redirecting to dashboard');
+                // Existing user - redirect to dashboard
+                const profileRole = (existingProfile as { role: string }).role;
+                if (profileRole === "instructor") {
+                  router.replace("/instructor");
+                } else {
+                  router.replace("/dashboard");
+                }
+                return;
+              }
+            }
+            
             setIsValidSession(true);
           } else {
-            console.log('[WELCOME] No valid session found');
-            setErr("Invalid or expired link. Please request a new signup.");
+            // Wait a bit more and try again
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const { data: { session: retrySession } } = await sb.auth.getSession();
+            if (retrySession) {
+              console.log('[WELCOME] Session found on retry:', { user: retrySession.user?.email });
+              
+              // Check if user already has a profile (existing user)
+              const { data: { user } } = await sb.auth.getUser();
+              if (user) {
+                const { data: existingProfile } = await sb
+                  .from("profiles")
+                  .select("role")
+                  .eq("id", user.id)
+                  .maybeSingle();
+                
+                if (existingProfile) {
+                  console.log('[WELCOME] Existing user with profile, redirecting to dashboard');
+                  // Existing user - redirect to dashboard
+                  const profileRole = (existingProfile as { role: string }).role;
+                  if (profileRole === "instructor") {
+                    router.replace("/instructor");
+                  } else {
+                    router.replace("/dashboard");
+                  }
+                  return;
+                }
+              }
+              
+              setIsValidSession(true);
+            } else {
+              console.log('[WELCOME] No valid session found');
+              setErr("Invalid or expired link. Please request a new signup.");
+            }
           }
         }
       } catch (error) {
@@ -63,7 +177,7 @@ function WelcomeContent() {
     };
 
     checkSession();
-  }, [sb.auth]);
+  }, [sb.auth, router, roleParam]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

@@ -75,8 +75,8 @@ function SignInContent() {
     setLoading(true);
     
     try {
-      // Use /auth/verify for magic link signups - dedicated verification page
-      const redirectUrl = absUrl(`/auth/verify?role=${role}${mobileNumber ? `&phone=${encodeURIComponent(mobileNumber)}` : ''}`);
+      // Use /welcome as redirect target - it will handle code exchange
+      const redirectUrl = absUrl(`/welcome?role=${role}${mobileNumber ? `&phone=${encodeURIComponent(mobileNumber)}` : ''}`);
       console.log('[SIGNUP] Generated redirect URL:', redirectUrl);
       const { error } = await sb.auth.signInWithOtp({
         email,
@@ -150,35 +150,63 @@ function SignInContent() {
         )}
 
         {mode === "signup" && sent ? (
-          <div className="text-center space-y-6">
+          <div className="text-center space-y-4">
             <h2 className="text-2xl font-semibold text-gray-900 mb-1">Check your email</h2>
             <p className="text-gray-600 text-lg -mt-1">
               We&apos;ve sent link to <strong className="text-gray-900">{email}</strong>
             </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-2">
+              <p className="text-yellow-800 text-sm">
+                <strong>Delivery may take 2-3 minutes.</strong> Please check your spam folder if you don&apos;t see it.
+              </p>
+            </div>
             <div className="flex items-center justify-center gap-3">
               <svg className="w-6 h-6 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
               </svg>
               <button 
-                onClick={() => {
+                onClick={async () => {
                   if (countdown === 0) {
-                    setSent(false);
-                    setCountdown(0);
+                    setErr(null);
+                    setLoading(true);
+                    try {
+                      const redirectUrl = absUrl(`/welcome?role=${role}${mobileNumber ? `&phone=${encodeURIComponent(mobileNumber)}` : ''}`);
+                      const { error } = await sb.auth.signInWithOtp({
+                        email,
+                        options: { 
+                          emailRedirectTo: redirectUrl
+                        }
+                      });
+                      if (error) {
+                        setErr(error.message);
+                        setSent(false);
+                      } else {
+                        setCountdown(45); // 45 second cooldown
+                      }
+                    } catch {
+                      setErr("An unexpected error occurred");
+                      setSent(false);
+                    } finally {
+                      setLoading(false);
+                    }
                   }
                 }}
-                disabled={countdown > 0}
+                disabled={countdown > 0 || loading}
                 className={`text-lg font-medium transition-colors duration-200 ${
-                  countdown > 0
+                  countdown > 0 || loading
                     ? "text-gray-400 cursor-not-allowed"
                     : "text-green-600 hover:text-green-700"
                 }`}
               >
-                {countdown > 0 ? `Try again (${countdown}s)` : "Try again"}
+                {loading ? "Sending..." : countdown > 0 ? `Resend (${countdown}s)` : "Resend link"}
               </button>
             </div>
-            <p className="text-gray-500 text-base">
-              Emails may take a few minutes, when it arrives click the link to verify your account.
-            </p>
+            <a
+              href="/sign-in"
+              className="inline-block text-gray-600 text-sm hover:text-gray-900 transition-colors"
+            >
+              ← Back to sign in
+            </a>
           </div>
         ) : (
           <form onSubmit={mode === "login" ? submitLogin : (e) => e.preventDefault()} className="space-y-3">
@@ -240,7 +268,7 @@ function SignInContent() {
                     setErr(null);
                     setLoading(true);
                     try {
-                      const redirectUrl = absUrl(`/auth/verify?role=learner${mobileNumber ? `&phone=${encodeURIComponent(mobileNumber)}` : ''}`);
+                      const redirectUrl = absUrl(`/welcome?role=learner${mobileNumber ? `&phone=${encodeURIComponent(mobileNumber)}` : ''}`);
                       const { error } = await sb.auth.signInWithOtp({
                         email,
                         options: { 
@@ -274,7 +302,7 @@ function SignInContent() {
                     setErr(null);
                     setLoading(true);
                     try {
-                      const redirectUrl = absUrl(`/auth/verify?role=instructor${mobileNumber ? `&phone=${encodeURIComponent(mobileNumber)}` : ''}`);
+                      const redirectUrl = absUrl(`/welcome?role=instructor${mobileNumber ? `&phone=${encodeURIComponent(mobileNumber)}` : ''}`);
                       const { error } = await sb.auth.signInWithOtp({
                         email,
                         options: { 
