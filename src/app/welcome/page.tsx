@@ -35,14 +35,54 @@ function WelcomeContent() {
         // If we have a code parameter, we MUST exchange it for a session
         if (codeParam) {
           console.log('[WELCOME] Code parameter detected, exchanging for session...');
+          console.log('[WELCOME] Full URL:', window.location.href);
+          console.log('[WELCOME] Code param:', codeParam);
+          
+          // Check if code_verifier is in URL (PKCE flow)
+          const codeVerifier = urlParams.get('code_verifier');
+          console.log('[WELCOME] Code verifier from URL:', codeVerifier);
+          
           try {
-            // For PKCE flow, we need to pass the full URL to exchangeCodeForSession
-            // This allows Supabase to extract both the code and code verifier
-            const fullUrl = window.location.href;
-            console.log('[WELCOME] Exchanging with full URL:', fullUrl);
-            // Exchange the code for a session - this MUST be called exactly once
-            // Pass the full URL which contains the code parameter
-            const { data, error: exchangeError } = await sb.auth.exchangeCodeForSession(fullUrl);
+            // For email verification with PKCE, the code verifier might not be available
+            // Try to let Supabase handle it automatically first by waiting
+            console.log('[WELCOME] Waiting for Supabase to auto-process code...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Check if session was created automatically
+            const { data: autoSession } = await sb.auth.getSession();
+            if (autoSession?.session) {
+              console.log('[WELCOME] Session created automatically by Supabase');
+              // Continue with session check below
+              const { data: { user } } = await sb.auth.getUser();
+              if (user) {
+                const { data: existingProfile } = await sb
+                  .from("profiles")
+                  .select("role")
+                  .eq("id", user.id)
+                  .maybeSingle();
+                
+                if (existingProfile) {
+                  console.log('[WELCOME] Existing user with profile, redirecting to dashboard');
+                  const profileRole = (existingProfile as { role: string }).role;
+                  if (profileRole === "instructor") {
+                    router.replace("/instructor");
+                  } else {
+                    router.replace("/dashboard");
+                  }
+                  return;
+                }
+              }
+              setIsValidSession(true);
+              const newUrl = new URL(window.location.href);
+              newUrl.searchParams.delete('code');
+              window.history.replaceState({}, '', newUrl.toString());
+              return;
+            }
+            
+            // If auto-processing didn't work, try manual exchange
+            // Note: This will fail if code verifier is missing, which is expected for email links
+            console.log('[WELCOME] Auto-processing failed, trying manual exchange...');
+            const { data, error: exchangeError } = await sb.auth.exchangeCodeForSession(codeParam);
             
             if (exchangeError) {
               console.error('[WELCOME] Exchange error:', exchangeError);
