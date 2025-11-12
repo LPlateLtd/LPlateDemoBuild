@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
@@ -6,11 +7,12 @@ import Logo from "@/components/ui/Logo";
 
 export const dynamic = 'force-dynamic';
 
-function ResetPasswordForm() {
+function WelcomeContent() {
   const sb = createSupabaseBrowser();
   const router = useRouter();
   const params = useSearchParams();
   const roleParam = params.get("role");
+  const phoneParam = params.get("phone");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -20,43 +22,41 @@ function ResetPasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Check if we have a valid session for password reset
+    // Check if we have a valid session for password setup
     const checkSession = async () => {
       try {
-        console.log('[RESET] Checking session for password reset...');
+        console.log('[WELCOME] Checking session for password setup...');
         
-        // First, try to get session from URL hash (for password reset links)
+        // Wait for Supabase to process the URL hash tokens
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Get the session
         const { data: { session }, error: sessionError } = await sb.auth.getSession();
         
         if (sessionError) {
-          console.error('[RESET] Session error:', sessionError);
-          setErr("Invalid or expired reset link. Please request a new password reset.");
+          console.error('[WELCOME] Session error:', sessionError);
+          setErr("Invalid or expired link. Please request a new signup.");
           return;
         }
         
         if (session) {
-          console.log('[RESET] Valid session found:', { user: session.user?.email });
+          console.log('[WELCOME] Valid session found:', { user: session.user?.email });
           setIsValidSession(true);
         } else {
-          // If no session, check if we're coming from a password reset redirect
-          // and try to extract session from URL hash
-          console.log('[RESET] No session found, checking URL hash...');
-          
-          // Wait a moment for Supabase to process the URL hash
+          // Wait a bit more and try again
           await new Promise(resolve => setTimeout(resolve, 1000));
-          
           const { data: { session: retrySession } } = await sb.auth.getSession();
           if (retrySession) {
-            console.log('[RESET] Session found on retry:', { user: retrySession.user?.email });
+            console.log('[WELCOME] Session found on retry:', { user: retrySession.user?.email });
             setIsValidSession(true);
           } else {
-            console.log('[RESET] No valid session found');
-            setErr("Invalid or expired reset link. Please request a new password reset.");
+            console.log('[WELCOME] No valid session found');
+            setErr("Invalid or expired link. Please request a new signup.");
           }
         }
       } catch (error) {
-        console.error('[RESET] Unexpected error:', error);
-        setErr("Invalid or expired reset link. Please request a new password reset.");
+        console.error('[WELCOME] Unexpected error:', error);
+        setErr("Invalid or expired link. Please request a new signup.");
       } finally {
         setCheckingSession(false);
       }
@@ -96,11 +96,11 @@ function ResetPasswordForm() {
         setIsSubmitting(false);
       } else {
         // Password updated successfully
-        console.log('[RESET] Password updated successfully');
+        console.log('[WELCOME] Password updated successfully');
         
-        // If this is a new user sign-up (has role param), create profile and redirect to dashboard
+        // Create profile for new user
         if (roleParam) {
-          console.log('[RESET] Creating profile for new user with role:', roleParam);
+          console.log('[WELCOME] Creating profile for new user with role:', roleParam);
           
           // Get the current user
           const { data: { user } } = await sb.auth.getUser();
@@ -111,53 +111,51 @@ function ResetPasswordForm() {
               role: roleParam as "learner" | "instructor",
               name: user.email?.split("@")[0] || "User",
               email: user.email,
+              phone: phoneParam || null,
             });
             
             if (profileError) {
-              console.error('[RESET] Profile creation error:', profileError);
+              console.error('[WELCOME] Profile creation error:', profileError);
               setErr("Password updated but failed to create profile. Please contact support.");
               setIsSubmitting(false);
               return;
             }
             
-            console.log('[RESET] Profile created successfully, redirecting to dashboard');
-            // Redirect to dashboard based on role
+            console.log('[WELCOME] Profile created successfully, redirecting to profile setup');
+            // Redirect to profile setup based on role
             if (roleParam === "instructor") {
-              router.push("/instructor");
+              router.push("/instructor/profile");
             } else {
-              router.push("/dashboard");
+              router.push("/learner/profile");
             }
           } else {
             setErr("Password updated but user not found. Please try signing in.");
             setIsSubmitting(false);
           }
         } else {
-          // Existing user password reset - check if they have a profile
-          console.log('[RESET] Existing user password reset, checking profile status');
+          // No role param - default to learner
+          console.log('[WELCOME] No role param, defaulting to learner');
           const { data: { user } } = await sb.auth.getUser();
           if (user) {
-            const { data: profile } = await sb
-              .from("profiles")
-              .select("role")
-              .eq("id", user.id)
-              .maybeSingle();
+            const { error: profileError } = await (sb.from("profiles") as any).insert({
+              id: user.id,
+              role: "learner",
+              name: user.email?.split("@")[0] || "User",
+              email: user.email,
+              phone: phoneParam || null,
+            });
             
-            if (profile) {
-              console.log('[RESET] Profile exists, redirecting to dashboard');
-              // Redirect to dashboard based on role
-              const profileRole = (profile as { role: string }).role;
-              if (profileRole === "instructor") {
-                router.push("/instructor");
-              } else {
-                router.push("/dashboard");
-              }
-            } else {
-              console.log('[RESET] No profile found, redirecting to learner profile setup');
-              router.push("/learner/profile");
+            if (profileError) {
+              console.error('[WELCOME] Profile creation error:', profileError);
+              setErr("Password updated but failed to create profile. Please contact support.");
+              setIsSubmitting(false);
+              return;
             }
+            
+            router.push("/learner/profile");
           } else {
-            console.log('[RESET] No user found, redirecting to sign in');
-            router.push("/sign-in");
+            setErr("Password updated but user not found. Please try signing in.");
+            setIsSubmitting(false);
           }
         }
       }
@@ -174,7 +172,7 @@ function ResetPasswordForm() {
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="w-full max-w-sm text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying reset link...</p>
+          <p className="text-gray-600">Verifying your account...</p>
         </div>
       </div>
     );
@@ -191,15 +189,15 @@ function ResetPasswordForm() {
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
               <span className="text-red-600 text-2xl">⚠</span>
             </div>
-            <h2 className="text-2xl font-semibold text-gray-900">Invalid Reset Link</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">Invalid Link</h2>
             <p className="text-gray-600 text-base">
-              {err || "This password reset link is invalid or has expired."}
+              {err || "This link is invalid or has expired."}
             </p>
             <a
-              href="/forgot-password"
+              href="/sign-in"
               className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl text-lg transition-colors"
             >
-              Request New Reset Link
+              Back to Sign In
             </a>
           </div>
         </div>
@@ -213,9 +211,7 @@ function ResetPasswordForm() {
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
         <div className="w-full max-w-sm text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">
-            {roleParam ? "Creating your account..." : "Updating password..."}
-          </p>
+          <p className="text-gray-600 text-lg">Creating your account...</p>
           <p className="text-gray-500 text-sm mt-2">Please wait while we redirect you</p>
         </div>
       </div>
@@ -232,14 +228,12 @@ function ResetPasswordForm() {
 
         {/* Welcome Message */}
         <h1 className="text-3xl font-semibold text-gray-900 text-center mb-8">
-          {roleParam ? "🎉 Complete Your Account" : "🔑 Set New Password"}
+          🎉 Welcome to L Plate!
         </h1>
         
-        {roleParam && (
-          <p className="text-gray-600 text-center mb-6">
-            Welcome to L Plate! Set your password to complete your {roleParam} account setup.
-          </p>
-        )}
+        <p className="text-gray-600 text-center mb-6">
+          Set your password to complete your {roleParam || "learner"} account setup.
+        </p>
 
         <form onSubmit={submit} className="space-y-6">
           {/* New Password Field */}
@@ -275,34 +269,21 @@ function ResetPasswordForm() {
             </div>
           )}
 
-          {/* Update Password Button */}
+          {/* Complete Setup Button */}
           <button
             type="submit"
             disabled={loading || !password || !confirmPassword}
             className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-bold py-5 px-6 rounded-xl text-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:cursor-not-allowed transform hover:scale-105 disabled:hover:scale-100"
           >
-            {loading 
-              ? (roleParam ? "Creating account..." : "Updating password...") 
-              : (roleParam ? "Complete Account Setup" : "Update Password")
-            }
+            {loading ? "Setting up account..." : "Complete Account Setup"}
           </button>
-
-          {/* Back to Sign In Link */}
-          <div className="text-center">
-            <a
-              href="/sign-in"
-              className="text-green-600 text-base font-medium hover:text-green-700 transition-colors"
-            >
-              Back to sign in
-            </a>
-          </div>
         </form>
       </div>
     </div>
   );
 }
 
-export default function ResetPassword() {
+export default function WelcomePage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
@@ -312,7 +293,8 @@ export default function ResetPassword() {
         </div>
       </div>
     }>
-      <ResetPasswordForm />
+      <WelcomeContent />
     </Suspense>
   );
 }
+

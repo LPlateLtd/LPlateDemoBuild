@@ -1,15 +1,25 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
 import Logo from "@/components/ui/Logo";
 import { absUrl } from "@/lib/url";
 
-export default function ForgotPassword() {
+function ForgotPasswordContent() {
   const sb = createSupabaseBrowser();
+  const params = useSearchParams();
+  const emailParam = params.get("email");
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Pre-fill email from URL parameter
+  useEffect(() => {
+    if (emailParam) {
+      setEmail(decodeURIComponent(emailParam));
+    }
+  }, [emailParam]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -110,5 +120,20 @@ export default function ForgotPassword() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ForgotPassword() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+        <div className="w-full max-w-sm text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ForgotPasswordContent />
+    </Suspense>
   );
 }

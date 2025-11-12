@@ -23,41 +23,11 @@ export default function Home() {
   const [instructors, setInstructors] = useState<InstructorData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check if we're coming from a password reset redirect
-    const checkForPasswordReset = async () => {
-      try {
-        const sb = createSupabaseBrowser();
-        const { data: { session } } = await sb.auth.getSession();
-        
-        // If we have a session and we're on the homepage, check if this is a password reset
-        if (session && window.location.hash.includes('access_token')) {
-          console.log('[HOME] Password reset detected, redirecting to reset page');
-          
-          // Check if this is a new user (no profile exists)
-          const { data: profile } = await sb
-            .from("profiles")
-            .select("id")
-            .eq("id", session.user.id)
-            .maybeSingle();
-          
-          if (!profile) {
-            console.log('[HOME] New user detected, redirecting to password reset');
-            window.location.href = '/auth/reset-password';
-            return;
-          } else {
-            console.log('[HOME] Existing user password reset');
-            window.location.href = '/auth/reset-password';
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('[HOME] Error checking for password reset:', error);
-      }
-    };
+  // Removed homepage auth redirect detection
+  // Supabase should redirect directly to /auth/verify via redirect_to parameter
+  // If hash tokens end up on homepage, they'll be handled by /auth/verify when user navigates there
 
-    checkForPasswordReset();
-    
+  useEffect(() => {
     const fetchTopInstructors = async () => {
       try {
         const sb = createSupabaseBrowser();

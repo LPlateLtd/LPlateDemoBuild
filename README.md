@@ -353,8 +353,8 @@ pnpm run build    # Full build test
 
 1. **Clone the repository**
    ```bash
-git clone <your-repo-url>
-cd lplate
+git clone https://github.com/LPlateLtd/LPlateDemoBuild.git
+cd LPlateDemoBuild
    ```
 
 2. **Install dependencies**

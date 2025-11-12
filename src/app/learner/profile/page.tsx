@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
@@ -18,6 +19,7 @@ interface Profile {
 }
 
 export default function LearnerProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -99,8 +101,13 @@ export default function LearnerProfilePage() {
         console.error("Failed to save profile:", error);
         setMessage({ type: 'error', text: 'Failed to save profile' });
       } else {
+        console.log('[PROFILE] Save successful, redirecting to dashboard...');
         setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 3000); // Reset after 3 seconds
+        setMessage({ type: 'success', text: 'Profile saved successfully! Redirecting to dashboard...' });
+        // Redirect to learner dashboard after successful save
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1500);
       }
     } catch (e) {
       console.error("Error saving profile:", e);
