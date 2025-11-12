@@ -43,10 +43,10 @@ function WelcomeContent() {
           console.log('[WELCOME] Code verifier from URL:', codeVerifier);
           
           try {
-            // For email verification with PKCE, the code verifier might not be available
-            // Try to let Supabase handle it automatically first by waiting
-            console.log('[WELCOME] Waiting for Supabase to auto-process code...');
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // With implicit flow, Supabase should automatically process the code from URL
+            // Wait for Supabase to process it
+            console.log('[WELCOME] Waiting for Supabase to auto-process code (implicit flow)...');
+            await new Promise(resolve => setTimeout(resolve, 1500));
             
             // Check if session was created automatically
             const { data: autoSession } = await sb.auth.getSession();
@@ -79,56 +79,44 @@ function WelcomeContent() {
               return;
             }
             
-            // If auto-processing didn't work, try manual exchange
-            // Note: This will fail if code verifier is missing, which is expected for email links
-            console.log('[WELCOME] Auto-processing failed, trying manual exchange...');
-            const { data, error: exchangeError } = await sb.auth.exchangeCodeForSession(codeParam);
-            
-            if (exchangeError) {
-              console.error('[WELCOME] Exchange error:', exchangeError);
-              // Redirect to error page with role and message
-              const errorMsg = exchangeError.message || "This verification link may have expired. Please request a new one.";
-              const errorUrl = `/auth/error?msg=${encodeURIComponent(errorMsg)}${roleParam ? `&role=${roleParam}` : ''}`;
-              router.replace(errorUrl);
-              return;
-            }
-            
-            if (data?.session) {
-              console.log('[WELCOME] Session created via exchangeCodeForSession:', { user: data.session.user?.email });
-              
-              // Check if user already has a profile (existing user)
-              const { data: { user } } = await sb.auth.getUser();
-              if (user) {
-                const { data: existingProfile } = await sb
-                  .from("profiles")
-                  .select("role")
-                  .eq("id", user.id)
-                  .maybeSingle();
-                
-                if (existingProfile) {
-                  console.log('[WELCOME] Existing user with profile, redirecting to dashboard');
-                  // Existing user - redirect to dashboard
-                  const profileRole = (existingProfile as { role: string }).role;
-                  if (profileRole === "instructor") {
-                    router.replace("/instructor");
-                  } else {
-                    router.replace("/dashboard");
+            // If auto-processing didn't work with implicit flow, the code might be in hash instead
+            // Check for hash tokens
+            const hash = window.location.hash;
+            if (hash.includes('access_token') || hash.includes('type=email')) {
+              console.log('[WELCOME] Hash tokens detected, waiting for processing...');
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              const { data: hashSession } = await sb.auth.getSession();
+              if (hashSession?.session) {
+                console.log('[WELCOME] Session created from hash tokens');
+                // Same user/profile check as above
+                const { data: { user } } = await sb.auth.getUser();
+                if (user) {
+                  const { data: existingProfile } = await sb
+                    .from("profiles")
+                    .select("role")
+                    .eq("id", user.id)
+                    .maybeSingle();
+                  
+                  if (existingProfile) {
+                    const profileRole = (existingProfile as { role: string }).role;
+                    if (profileRole === "instructor") {
+                      router.replace("/instructor");
+                    } else {
+                      router.replace("/dashboard");
+                    }
+                    return;
                   }
-                  return;
                 }
+                setIsValidSession(true);
+                return;
               }
-              
-              setIsValidSession(true);
-              // Clean up the code from URL
-              const newUrl = new URL(window.location.href);
-              newUrl.searchParams.delete('code');
-              window.history.replaceState({}, '', newUrl.toString());
-            } else {
-              console.error('[WELCOME] No session in exchange response');
-              const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to create session. Please try again.")}${roleParam ? `&role=${roleParam}` : ''}`;
-              router.replace(errorUrl);
-              return;
             }
+            
+            // If still no session, show error
+            console.error('[WELCOME] No session created after processing code');
+            const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to verify your email. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}`;
+            router.replace(errorUrl);
+            return;
           } catch (exchangeErr) {
             console.error('[WELCOME] Exchange failed:', exchangeErr);
             const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to verify your email. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}`;

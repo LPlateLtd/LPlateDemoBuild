@@ -12,7 +12,8 @@ export const createSupabaseBrowser = () => {
         auth: { 
           persistSession: true, 
           detectSessionInUrl: true,
-          flowType: 'pkce'
+          // Use implicit flow for email verification links to avoid PKCE code verifier issues
+          flowType: 'implicit'
         } 
       }
     );
