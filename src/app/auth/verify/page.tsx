@@ -57,38 +57,23 @@ function VerifyContent() {
           return;
         }
         
-        // Check if we have code parameter (newer Supabase flow)
-        if (codeParam) {
-          console.log('[VERIFY] Code parameter detected, exchanging for session...');
-          // Exchange code for session
-          const { data, error } = await sb.auth.exchangeCodeForSession(codeParam);
-          
-          if (error) {
-            console.error('[VERIFY] Code exchange error:', error);
-            if (error.message.includes('expired') || error.message.includes('invalid')) {
-              router.replace("/sign-in?error=link_expired&message=" + encodeURIComponent("This verification link has expired. Please request a new one."));
-            } else {
-              router.replace("/sign-in?error=verification_failed&message=" + encodeURIComponent(error.message || "Verification failed. Please try again."));
-            }
-            return;
-          }
-          
-          console.log('[VERIFY] Code exchanged successfully, session created');
-          // Continue with session processing below
-        }
-        
-        // Check if we have hash tokens in the URL (older PKCE flow)
+        // Check if we have code parameter or hash tokens
         const hasHashTokens = window.location.hash.includes('access_token') || 
                              window.location.hash.includes('type=recovery') ||
                              window.location.hash.includes('type=signup');
         
-        if (hasHashTokens) {
+        if (codeParam) {
+          console.log('[VERIFY] Code parameter detected, waiting for Supabase to process...');
+          // For email verification, Supabase automatically processes the code when we call getSession()
+          // Just wait a moment for it to process
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } else if (hasHashTokens) {
           console.log('[VERIFY] Hash tokens detected, waiting for Supabase to process...');
-          // Wait longer for Supabase to process the URL hash tokens
+          // Wait for Supabase to process the URL hash tokens
           await new Promise(resolve => setTimeout(resolve, 1500));
-        } else if (!codeParam) {
-          // No hash tokens and no code - might be coming from homepage redirect
-          console.log('[VERIFY] No hash tokens or code in URL, checking for existing session...');
+        } else {
+          // No tokens - might be coming from homepage redirect or already processed
+          console.log('[VERIFY] No tokens in URL, checking for existing session...');
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         
