@@ -80,8 +80,17 @@ html, body {
   }
 }
 
+@keyframes scroll-slow-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
 .animate-scroll {
-  animation: scroll 30s linear infinite;
+  animation: scroll 70s linear infinite;
 }
 
 .animate-scroll:hover {
@@ -89,7 +98,7 @@ html, body {
 }
 
 .animate-scroll-slow {
-  animation: scroll-slow 45s linear infinite;
+  animation: scroll-slow-reverse 60s linear infinite;
 }
 
 .animate-scroll-slow:hover {
