@@ -43,16 +43,58 @@ function WelcomeContent() {
           console.log('[WELCOME] Code verifier from URL:', codeVerifier);
           
           try {
-            // With implicit flow, Supabase should automatically process the code from URL
-            // Wait for Supabase to process it
-            console.log('[WELCOME] Waiting for Supabase to auto-process code (implicit flow)...');
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // The code parameter is a PKCE code from Supabase's verify endpoint redirect
+            // Supabase's email links: Email → Supabase /verify → Our /welcome?code=...
+            // The code is a PKCE authorization code that needs to be exchanged for a session
+            // With PKCE flow, the code verifier should be in localStorage from when OTP was requested
             
-            // Check if session was created automatically
+            console.log('[WELCOME] Code parameter detected (PKCE code from Supabase verify)');
+            console.log('[WELCOME] Attempting to exchange code for session...');
+            
+            // First, wait a moment for Supabase to potentially auto-process
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Check if session was already created
+            let session = null;
             const { data: autoSession } = await sb.auth.getSession();
             if (autoSession?.session) {
-              console.log('[WELCOME] Session created automatically by Supabase');
-              // Continue with session check below
+              console.log('[WELCOME] Session already exists');
+              session = autoSession.session;
+            } else {
+              // Try to exchange the code for a session
+              // With PKCE flow, exchangeCodeForSession should use the code verifier from localStorage
+              console.log('[WELCOME] Exchanging code for session...');
+              const { data, error: exchangeError } = await sb.auth.exchangeCodeForSession(codeParam);
+              
+              if (exchangeError) {
+                console.error('[WELCOME] Exchange error:', exchangeError);
+                
+                // If code verifier is missing, it means OTP was requested in different browser/device
+                if (exchangeError.message.includes('code verifier')) {
+                  const errorUrl = `/auth/error?msg=${encodeURIComponent("Email verification failed. Please open the email link in the same browser where you requested it, or request a new verification link.")}${roleParam ? `&role=${roleParam}` : ''}`;
+                  router.replace(errorUrl);
+                  return;
+                }
+                
+                // Other errors
+                const errorUrl = `/auth/error?msg=${encodeURIComponent(exchangeError.message || "Email verification failed. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}`;
+                router.replace(errorUrl);
+                return;
+              }
+              
+              if (data?.session) {
+                console.log('[WELCOME] Session created via exchangeCodeForSession');
+                session = data.session;
+              } else {
+                console.error('[WELCOME] No session in exchange response');
+                const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to create session. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}`;
+                router.replace(errorUrl);
+                return;
+              }
+            }
+            
+            // If we have a session, continue with user/profile check
+            if (session) {
               const { data: { user } } = await sb.auth.getUser();
               if (user) {
                 const { data: existingProfile } = await sb
@@ -78,45 +120,6 @@ function WelcomeContent() {
               window.history.replaceState({}, '', newUrl.toString());
               return;
             }
-            
-            // If auto-processing didn't work with implicit flow, the code might be in hash instead
-            // Check for hash tokens
-            const hash = window.location.hash;
-            if (hash.includes('access_token') || hash.includes('type=email')) {
-              console.log('[WELCOME] Hash tokens detected, waiting for processing...');
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              const { data: hashSession } = await sb.auth.getSession();
-              if (hashSession?.session) {
-                console.log('[WELCOME] Session created from hash tokens');
-                // Same user/profile check as above
-                const { data: { user } } = await sb.auth.getUser();
-                if (user) {
-                  const { data: existingProfile } = await sb
-                    .from("profiles")
-                    .select("role")
-                    .eq("id", user.id)
-                    .maybeSingle();
-                  
-                  if (existingProfile) {
-                    const profileRole = (existingProfile as { role: string }).role;
-                    if (profileRole === "instructor") {
-                      router.replace("/instructor");
-                    } else {
-                      router.replace("/dashboard");
-                    }
-                    return;
-                  }
-                }
-                setIsValidSession(true);
-                return;
-              }
-            }
-            
-            // If still no session, show error
-            console.error('[WELCOME] No session created after processing code');
-            const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to verify your email. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}`;
-            router.replace(errorUrl);
-            return;
           } catch (exchangeErr) {
             console.error('[WELCOME] Exchange failed:', exchangeErr);
             const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to verify your email. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}`;
