@@ -112,7 +112,7 @@ export default function Dashboard() {
         .eq("id", user.id)
         .maybeSingle();
 
-      const learnerPostcode = learnerProfile?.postcode || null;
+      const learnerPostcode = (learnerProfile as { postcode: string | null } | null)?.postcode || null;
 
       // Fetch instructor profiles
       const instructorIds = bookingsData.map((b: any) => b.instructor_id);
