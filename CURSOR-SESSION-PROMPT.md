@@ -8,20 +8,17 @@ Use this prompt when starting a new Cursor session to quickly get up to speed on
 
 I'm working on **LPlate**, a UK learner driver marketplace connecting learners with qualified driving instructors. **PRODUCTION STATUS: Stripe Connect integration is complete and deployed!** 🎉
 
-### 🎯 **Current Status (Latest - v3.14 Next.js 16 Upgrade & Instructor Dashboard Enhancements)**
-- ✅ **Next.js 16 Upgrade**: Successfully upgraded from Next.js 15.5.3 to 16.0.1 with full compatibility verification
-- ✅ **Package Updates**: Updated React 19.2.0, @supabase/supabase-js 2.80.0, TypeScript 5.9.3, Zod 4.1.12
-- ✅ **Production Deployment**: Successfully deployed to production with all pre-deployment checks passed (typecheck, build)
-- ✅ **Instructor Earnings Page**: Complete dedicated earnings tracking page with monthly/weekly toggle, visual progress indicators, and payout history
-- ✅ **Monthly-Focused Dashboard**: Converted instructor dashboard from weekly to monthly earnings focus with £3,000 monthly target
-- ✅ **Reusable UI Components**: Created common component library (BackButton, ToggleGroup, ProfileAvatarUpload, PrimaryButton) for consistent UI/UX
-- ✅ **Enhanced Navigation Menu**: Updated instructor menu with Supabase-hosted icons for Dashboard, Profile, Earnings, Bookings, and Working Hours
-- ✅ **Improved Dashboard Layout**: Optimized spacing and layout with "Hi [First Name]! 👋" greeting and "Manage your business" placement
-- ✅ **Stripe Account Status**: Added Payments section with color-coded status indicators (Required/Pending/Verified) and Stripe Connect integration
-- ✅ **Profile Loading Fix**: Resolved database query issues by removing non-existent columns (gender, profile_picture) from profile queries
-- ✅ **Menu Personalization**: Navigation menu now displays instructor's first name with larger, more prominent text
-- ✅ **Log Out Button**: Enhanced logout button with orange styling and Supabase-hosted icon
-- ✅ **TypeScript Fixes**: Resolved all TypeScript errors for clean build and deployment
+### 🎯 **Current Status (Latest - v3.15 Authentication Flow & Learner Dashboard Enhancements)**
+- ✅ **Authentication Flow Overhaul**: Complete email verification flow with PKCE, resilient error handling, and password setup
+- ✅ **Welcome Page**: New `/welcome` page handles email verification, session creation, and redirects new/existing users appropriately
+- ✅ **Error Handling**: Enhanced `/auth/error` page with auto-detection, helpful error messages, and resend functionality
+- ✅ **Sign-In Page Updates**: Improved UI with Log In/Sign Up toggle, mobile number collection, and better email confirmation screen
+- ✅ **Learner Dashboard**: Added "Upcoming lessons" card showing up to 3 lessons this week with instructor details, times, and pick-up locations
+- ✅ **Welcome Message**: Personalized learner dashboard greeting "Welcome [FirstName]! 👋"
+- ✅ **PKCE Flow**: Switched to PKCE authentication flow to properly handle Supabase email verification links
+- ✅ **Code Verifier Handling**: Implemented localStorage checking and retry logic for code verifier issues
+- ✅ **Production Deployment**: Successfully deployed with all authentication improvements and dashboard enhancements
+- ✅ **TypeScript Fixes**: Resolved all TypeScript errors including postcode property type assertions
 
 ### 🎯 **Previous Status (v3.13 Instructor Availability Enhancement)**
 - ✅ **Instructor Availability Page Enhancement**: Complete UI/UX overhaul with accessibility-friendly toggle switches

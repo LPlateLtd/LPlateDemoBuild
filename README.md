@@ -32,17 +32,21 @@ A modern marketplace web app connecting UK learner drivers with qualified drivin
 - **Enhanced search bar** with real-time postcode formatting and Enter key support
 - **3-step journey visualization** with animated icons and connecting arrows
 - **Custom logo system** with fallback mechanism for reliable branding
-- **Streamlined authentication** with pill-shaped role selection and confirmation screens
+- **Streamlined authentication** with email verification, password setup, and error handling
 - **Social media integration** with playful footer-style links and brand-colored buttons
 - **Optimized homepage flow** with strategic section placement for better conversion
 - **Social proof carousel** displaying learner success stories with certificate images
 - **Certificate upload system** for learners to share their driving test achievements
+- **Learner dashboard** with upcoming lessons card showing instructor details, times, and pick-up locations
 
 ### 🔐 Authentication & Security
-- **Supabase Auth** for secure user authentication
+- **Supabase Auth** for secure user authentication with PKCE flow
+- **Email verification** with magic links and resilient error handling
+- **Password setup** for new users during onboarding
 - **Row Level Security (RLS)** protecting user data
 - **Role-based access** (learner vs instructor)
 - **Profile photo uploads** to Supabase Storage
+- **Resilient error pages** with resend functionality for failed verifications
 
 ### 💳 Payment Processing
 - **Stripe Connect Integration** for marketplace payments
@@ -712,7 +716,7 @@ CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.
 - **URL**: `https://lplate-khaki.vercel.app`
 - **Database**: PostgreSQL with Stripe Connect schema migrated
 - **Webhooks**: Stripe Connect and Payment webhooks deployed and tested
-- **Latest Update**: New user onboarding flow with welcome page and improved email verification
+- **Latest Update**: New user onboarding flow with welcome page, improved email verification, and enhanced learner dashboard with upcoming lessons
 
 ### 🔧 Deployment Configuration
 - **Build Command**: `pnpm run build`
