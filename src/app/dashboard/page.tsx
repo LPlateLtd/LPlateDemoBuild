@@ -79,7 +79,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-white">
       <div className="max-w-md mx-auto px-6 py-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Welcome back, {profile?.name ? profile.name.split(' ')[0] : "Learner"}! 👋
+          Welcome {profile?.name ? profile.name.split(' ')[0] : "Learner"}! 👋
         </h1>
         
         <div className="space-y-6">
