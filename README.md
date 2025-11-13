@@ -30,12 +30,15 @@ A modern marketplace web app connecting UK learner drivers with qualified drivin
 - **Elegant share functionality** with pill-shaped buttons and URL copying
 - **Hamburger menu navigation** with role-based dropdown menus
 - **Enhanced search bar** with real-time postcode formatting and Enter key support
-- **3-step journey visualization** with animated icons and connecting arrows
+- **Payment method cards** displaying Credit Card, PayPal, Klarna, Apple Pay, and Google Pay with optimized image sizing
+- **3-step journey visualization** with pastel gradient circles, custom icons (Find, Learn, Pass), and hover animations
+- **FAQs section** with accessible accordion (4 questions), keyboard navigation, and smooth animations
 - **Custom logo system** with fallback mechanism for reliable branding
 - **Streamlined authentication** with email verification, password setup, and error handling
-- **Social media integration** with playful footer-style links and brand-colored buttons
-- **Optimized homepage flow** with strategic section placement for better conversion
+- **Social media integration** with centered layout (TikTok center, Instagram/Facebook evenly spaced) and brand-colored buttons
+- **Optimized homepage flow** with strategic section placement and refined spacing for better conversion
 - **Social proof carousel** displaying learner success stories with certificate images
+- **Footer** with copyright, privacy policy, terms of service, and help & support links
 - **Certificate upload system** for learners to share their driving test achievements
 - **Learner dashboard** with upcoming lessons card showing instructor details, times, and pick-up locations
 
