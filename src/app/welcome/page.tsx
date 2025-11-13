@@ -13,6 +13,7 @@ function WelcomeContent() {
   const params = useSearchParams();
   const roleParam = params.get("role");
   const phoneParam = params.get("phone");
+  const emailParam = params.get("email");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -62,32 +63,63 @@ function WelcomeContent() {
               session = autoSession.session;
             } else {
               // Try to exchange the code for a session
-              // With PKCE flow, exchangeCodeForSession should use the code verifier from localStorage
-              console.log('[WELCOME] Exchanging code for session...');
-              const { data, error: exchangeError } = await sb.auth.exchangeCodeForSession(codeParam);
+              // Pass the full URL to exchangeCodeForSession - it should extract the code and code_verifier
+              console.log('[WELCOME] Exchanging code for session with full URL...');
+              const fullUrl = window.location.href;
+              console.log('[WELCOME] Full URL for exchange:', fullUrl);
+              
+              const { data, error: exchangeError } = await sb.auth.exchangeCodeForSession(fullUrl);
               
               if (exchangeError) {
                 console.error('[WELCOME] Exchange error:', exchangeError);
                 
                 // If code verifier is missing, it means OTP was requested in different browser/device
-                if (exchangeError.message.includes('code verifier')) {
-                  const errorUrl = `/auth/error?msg=${encodeURIComponent("Email verification failed. Please open the email link in the same browser where you requested it, or request a new verification link.")}${roleParam ? `&role=${roleParam}` : ''}`;
+                // OR the code verifier wasn't stored properly
+                if (exchangeError.message.includes('code verifier') || exchangeError.message.includes('non-empty')) {
+                  console.error('[WELCOME] Code verifier issue - checking localStorage...');
+                  
+                  // Check if code verifier exists in localStorage
+                  const storageKeys = Object.keys(localStorage);
+                  const codeVerifierKey = storageKeys.find(key => key.includes('code-verifier') || key.includes('codeVerifier'));
+                  console.log('[WELCOME] Code verifier key in localStorage:', codeVerifierKey);
+                  
+                  if (!codeVerifierKey) {
+                    const errorUrl = `/auth/error?msg=${encodeURIComponent("Email verification failed. Please open the email link in the same browser where you requested it, or request a new verification link.")}${roleParam ? `&role=${roleParam}` : ''}${emailParam ? `&email=${encodeURIComponent(emailParam)}` : ''}${phoneParam ? `&phone=${encodeURIComponent(phoneParam)}` : ''}`;
+                    router.replace(errorUrl);
+                    return;
+                  }
+                  
+                  // Try again with just the code (Supabase should find verifier in localStorage)
+                  console.log('[WELCOME] Retrying with code only (verifier should be in localStorage)...');
+                  const { data: retryData, error: retryError } = await sb.auth.exchangeCodeForSession(codeParam);
+                  
+                  if (retryError) {
+                    console.error('[WELCOME] Retry also failed:', retryError);
+                    const errorUrl = `/auth/error?msg=${encodeURIComponent("Email verification failed. Please request a new verification link.")}${roleParam ? `&role=${roleParam}` : ''}${emailParam ? `&email=${encodeURIComponent(emailParam)}` : ''}${phoneParam ? `&phone=${encodeURIComponent(phoneParam)}` : ''}`;
+                    router.replace(errorUrl);
+                    return;
+                  }
+                  
+                  if (retryData?.session) {
+                    console.log('[WELCOME] Session created on retry');
+                    session = retryData.session;
+                  } else {
+                    const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to create session. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}${emailParam ? `&email=${encodeURIComponent(emailParam)}` : ''}${phoneParam ? `&phone=${encodeURIComponent(phoneParam)}` : ''}`;
+                    router.replace(errorUrl);
+                    return;
+                  }
+                } else {
+                  // Other errors
+                  const errorUrl = `/auth/error?msg=${encodeURIComponent(exchangeError.message || "Email verification failed. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}${emailParam ? `&email=${encodeURIComponent(emailParam)}` : ''}${phoneParam ? `&phone=${encodeURIComponent(phoneParam)}` : ''}`;
                   router.replace(errorUrl);
                   return;
                 }
-                
-                // Other errors
-                const errorUrl = `/auth/error?msg=${encodeURIComponent(exchangeError.message || "Email verification failed. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}`;
-                router.replace(errorUrl);
-                return;
-              }
-              
-              if (data?.session) {
+              } else if (data?.session) {
                 console.log('[WELCOME] Session created via exchangeCodeForSession');
                 session = data.session;
               } else {
                 console.error('[WELCOME] No session in exchange response');
-                const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to create session. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}`;
+                const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to create session. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}${emailParam ? `&email=${encodeURIComponent(emailParam)}` : ''}${phoneParam ? `&phone=${encodeURIComponent(phoneParam)}` : ''}`;
                 router.replace(errorUrl);
                 return;
               }
@@ -122,7 +154,7 @@ function WelcomeContent() {
             }
           } catch (exchangeErr) {
             console.error('[WELCOME] Exchange failed:', exchangeErr);
-            const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to verify your email. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}`;
+            const errorUrl = `/auth/error?msg=${encodeURIComponent("Failed to verify your email. Please request a new link.")}${roleParam ? `&role=${roleParam}` : ''}${emailParam ? `&email=${encodeURIComponent(emailParam)}` : ''}${phoneParam ? `&phone=${encodeURIComponent(phoneParam)}` : ''}`;
             router.replace(errorUrl);
             return;
           }
